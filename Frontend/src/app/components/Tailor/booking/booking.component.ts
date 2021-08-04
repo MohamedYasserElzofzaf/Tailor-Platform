@@ -6,21 +6,7 @@ import { UcWidgetComponent } from 'ngx-uploadcare-widget';
 import { Subscription } from 'rxjs';
 import { CustomerService } from 'src/app/services/customer.service';
 import { OrderService } from 'src/app/services/order.service';
-import { User } from 'src/app/services/user.model';
 import { Order } from '../../shared/models';
-// form need validation about designs not to be empty
-// add delete to uploaded images from UI and DB
-
-interface sizes {
-  chest: number;
-  armLength: number;
-  waist: number;
-  height: number;
-  inseam: number;
-  shoulder: number;
-  collar: number;
-  thigh: number;
-}
 
 @Component({
   selector: 'app-booking',
@@ -101,6 +87,7 @@ export class BookingComponent implements OnInit, OnDestroy {
   clear_uploads() {
     this.images = [];
   }
+
   get_user_sizes(customer_sizes: NgForm) {
     if (this.check_login()) {
       this.isLoading = true;
@@ -126,20 +113,31 @@ export class BookingComponent implements OnInit, OnDestroy {
           }
         },
         (err) => {
-          this.toastr.error(err);
+          this.toastr.error(err, 'Error', {
+            positionClass: 'toast-top-center',
+          });
         }
       );
     }
   }
 
+  delete_image(img: string) {
+    this.images = this.images.filter((image) => image != img);
+    if (this.images.length > 0) return (this.isUploading = false);
+    return (this.isUploading = true);
+  }
+  
   check_login() {
     if (this.currentUserId == undefined) {
+      this.toastr.warning('Please sign in first.', 'Warning');
       this.router.navigate(['login']);
-      this.toastr.warning('Please sign in first.');
+      const modal = document.querySelector('.modal-backdrop');
+      if (modal != null) modal.remove();
       return false;
     }
     return true;
   }
+
   ngOnDestroy() {
     if (this.eve != undefined) this.eve.unsubscribe();
   }
